@@ -1,87 +1,95 @@
-import { Container } from './Container/Container';
-import { Component } from 'react';
-import { ContactForm } from './ContactForm/ContactForm';
+import PropTypes from 'prop-types';
 import { nanoid } from 'nanoid';
-import { Filter } from './Filter/Filter';
-import { ContactList } from './ContactList/ContactList';
+import { ContactForm } from 'components/ContactForm/ContactForm';
+import { Filter } from 'components/Filter/Filter';
+import { ContactList } from 'components/ContactList/ContactList';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [firstRender, setFirstRender] = useState(true);
 
-  componentDidMount() {
-    const data = JSON.parse(localStorage.getItem('contacts'));
-    if (data) {
-      this.setState({ contacts: data });
+  useEffect(() => {
+    if (firstRender) {
+      const contactsFromLocalStorage =
+        window.localStorage.getItem('contactList');
+
+      if (contactsFromLocalStorage !== 'undefined') {
+        const parsedContacts = JSON.parse(contactsFromLocalStorage);
+
+        if (parsedContacts) {
+          setContacts(parsedContacts);
+        }
+      }
+      setFirstRender(false);
+    } else {
+      window.localStorage.setItem('contactList', JSON.stringify(contacts));
     }
-  }
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-    if (contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts, firstRender]);
+
+  const handleChange = e => {
+    const { value } = e.target;
+    setFilter(value);
+  };
+
+  const handleSubmit = e => {
+    const id = nanoid();
+    const name = e.name;
+    const number = e.number;
+    const contactsLists = [...contacts];
+
+    if (contactsLists.findIndex(contact => name === contact.name) !== -1) {
+      alert(`${name} is already in contacts.`);
+    } else {
+      contactsLists.push({ id, name, number });
     }
-  }
 
-  filterInput = evt => {
-    this.setState({ filter: evt.currentTarget.value });
+    setContacts(contactsLists);
   };
 
-  filterContacts = () => {
-    const { contacts, filter } = this.state;
-    const filterToLowerCase = filter.toLowerCase();
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filterToLowerCase)
-    );
+  const handleDelete = e => {
+    setContacts(contacts.filter(contact => contact.id !== e));
   };
 
-  deleteContact = contactId => {
-    this.setState(({ contacts }) => ({
-      contacts: contacts.filter(contact => contact.id !== contactId),
-    }));
+  const getFilteredContacts = () => {
+    const filterContactsList = contacts.filter(contact => {
+      return contact.name.toLowerCase().includes(filter.toLowerCase());
+    });
+    return filterContactsList;
   };
 
-  formSubmitHandler = (name, number) => {
-    const contact = {
-      id: nanoid(),
-      name,
-      number,
-    };
-    this.state.contacts.find(
-      contact => contact.name.toLowerCase() === name.toLowerCase()
-    )
-      ? alert(`${name} is already in contacts`)
-      : this.setState(({ contacts }) => ({
-          contacts: [contact, ...contacts],
-        }));
-  };
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontSize: 20,
+        color: '#010101',
+      }}
+    >
+      <h1>Phonebook</h1>
+      <ContactForm handleSubmit={handleSubmit} />
+      <h2> Contacts</h2>
+      <Filter filter={filter} handleChange={handleChange} />
+      <ContactList
+        contacts={getFilteredContacts()}
+        handleDelete={handleDelete}
+      />
+    </div>
+  );
+};
 
-  render() {
-    const { filter, contacts } = this.state;
-    const filteredContacts = this.filterContacts();
-
-    return (
-      <Container>
-        <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.formSubmitHandler} />
-
-        <h2>Contacts</h2>
-        {contacts.length > 0 ? (
-          <Filter value={filter} onChange={this.filterInput} />
-        ) : (
-          <p>Contact list is empty</p>
-        )}
-        <ContactList
-          contacts={filteredContacts}
-          deleteContact={this.deleteContact}
-        />
-      </Container>
-    );
-  }
-}
+App.propTypes = {
+  contacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      number: PropTypes.string.isRequired,
+    })
+  ),
+  filter: PropTypes.string,
+};

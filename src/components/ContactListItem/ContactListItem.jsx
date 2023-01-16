@@ -1,26 +1,19 @@
-import PropTypes from 'prop-types';
-import styles from './ContactListItem.module.css';
+// import {
+//   ListItem,
+//   Button,
+// } from 'components/ContactListItem/ContactListItem.styled';
 
-export const ContactsListItem = ({ id, name, number, deleteContact }) => {
-  return (
-    <li key={id} className={styles.item}>
-      <p>
-        {name}: {number}{' '}
-        <button
-          className={styles.btn}
-          type="button"
-          onClick={() => deleteContact(id)}
-        >
-          delete
-        </button>
-      </p>
-    </li>
-  );
-};
-
-ContactsListItem.propTypes = {
-  name: PropTypes.string.isRequired,
-  number: PropTypes.string.isRequired,
-  id: PropTypes.string.isRequired,
-  deleteContact: PropTypes.func.isRequired,
-};
+// export const ContactListItem = ({ contacts, removeContact }) => {
+//   return (
+//     <>
+//       {contacts.map(({ id, name, number }) => (
+//         <ListItem key={id}>
+//           {name}: {number}
+//           <Button type="submit" onClick={() => removeContact(id)}>
+//             Delete
+//           </Button>
+//         </ListItem>
+//       ))}
+//     </>
+//   );
+// };
