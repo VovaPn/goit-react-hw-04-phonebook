@@ -6,27 +6,18 @@ import { ContactList } from 'components/ContactList/ContactList';
 import { useState, useEffect } from 'react';
 
 export const App = () => {
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(localStorage.getItem('contacts')) ?? [];
+  });
   const [filter, setFilter] = useState('');
-  const [firstRender, setFirstRender] = useState(true);
 
   useEffect(() => {
-    if (firstRender) {
-      const contactsFromLocalStorage =
-        window.localStorage.getItem('contactList');
+    window.localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-      if (contactsFromLocalStorage !== 'undefined') {
-        const parsedContacts = JSON.parse(contactsFromLocalStorage);
-
-        if (parsedContacts) {
-          setContacts(parsedContacts);
-        }
-      }
-      setFirstRender(false);
-    } else {
-      window.localStorage.setItem('contactList', JSON.stringify(contacts));
-    }
-  }, [contacts, firstRender]);
+  useEffect(() => {
+    window.localStorage.setItem('contactList', JSON.stringify(contacts));
+  }, [contacts]);
 
   const handleChange = e => {
     const { value } = e.target;
